@@ -18,7 +18,7 @@ Actions → ‘Deploy website and build assignment’ → ‘Run workflow’에�
 
 ## 기능
 
-홈페이지 검색과 빠른 링크, 브라우저 메모 저장. URL2QR의 QR 생성·PNG 저장. QRnShort의 QR 생성·is.gd 단축주소 생성·복사·새 창 열기. is.gd 단축주소는 실제 공개 서비스 결과를 사용하며 변환 버튼을 누를 때만 요청합니다.
+홈페이지 검색과 빠른 링크, 브라우저 메모 저장. URL2QR의 QR 생성·PNG 저장. QRnShort의 QR 생성·spoo.me 단축주소 생성·복사·새 창 열기. spoo.me 단축주소는 실제 공개 서비스 결과를 사용하며 변환 버튼을 누를 때만 요청합니다.
 
 ## 외부 라이브러리
 

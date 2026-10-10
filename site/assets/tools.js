@@ -17,22 +17,22 @@ if(!url.hostname.includes(".")||url.username||url.password)throw new Error("올�
 if(new TextEncoder().encode(url.href).length>1800)throw new Error("주소가 너무 깁니다. 1,800바이트 이내의 주소를 입력해 주세요.");
 return url.href;
 }
-function validShort(value){try{const u=new URL(value);return u.protocol==="https:"&&u.hostname==="is.gd"&&/^\/[A-Za-z0-9_]+$/.test(u.pathname);}catch(e){return false;}}
-function shorten(url){
-if(validShort(cache[url]))return Promise.resolve(cache[url]);
-return new Promise((resolve,reject)=>{
-const callback="qrnshort_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-const script=document.createElement("script");let settled=false;
-const timer=setTimeout(()=>finish(new Error("단축 서비스 응답이 늦어지고 있습니다. 잠시 후 다시 눌러 주세요.")),25000);
-function finish(error,value){if(settled)return;settled=true;clearTimeout(timer);script.remove();if(error){window[callback]=()=>{};setTimeout(()=>{delete window[callback];},60000);reject(error);}else{delete window[callback];resolve(value);}}
-window[callback]=data=>{
-if(data&&validShort(data.shorturl)){cache[url]=data.shorturl;try{localStorage.setItem(storageKey,JSON.stringify(cache));}catch(e){}finish(null,data.shorturl);}
-else finish(new Error(data&&data.errorcode===3?"단축 서비스 요청 한도에 도달했습니다. 1분 뒤 다시 시도해 주세요.":"단축주소를 만들지 못했습니다. 주소를 확인하고 잠시 후 다시 시도해 주세요."));
-};
-script.onerror=()=>finish(new Error("단축 서비스에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요."));
-script.src="https://is.gd/create.php?format=json&callback="+encodeURIComponent(callback)+"&url="+encodeURIComponent(url);
-script.referrerPolicy="no-referrer";document.head.appendChild(script);
+function validShort(value){try{const u=new URL(value);return u.protocol==="https:"&&["spoo.me","is.gd"].includes(u.hostname)&&/^\/[A-Za-z0-9_-]+$/.test(u.pathname);}catch(e){return false;}}
+async function shorten(url){
+if(validShort(cache[url]))return cache[url];
+const controller=new AbortController();
+const timer=setTimeout(()=>controller.abort(),20000);
+try{
+const response=await fetch("https://spoo.me/api/v1/shorten",{
+method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+body:JSON.stringify({long_url:url}),signal:controller.signal,credentials:"omit"
 });
+let data;try{data=await response.json();}catch(e){throw new Error("단축 서비스 응답을 읽지 못했습니다. 잠시 후 다시 시도해 주세요.");}
+if(!response.ok||!data||!validShort(data.short_url))throw new Error(response.status===429?"단축 서비스 요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요.":"단축주소를 만들지 못했습니다. 주소를 확인하고 다시 시도해 주세요.");
+cache[url]=data.short_url;try{localStorage.setItem(storageKey,JSON.stringify(cache));}catch(e){}
+return data.short_url;
+}catch(error){if(error.name==="AbortError")throw new Error("단축 서비스 응답이 늦어지고 있습니다. 잠시 후 다시 시도해 주세요.");if(error instanceof TypeError)throw new Error("단축 서비스에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요.");throw error;
+}finally{clearTimeout(timer);}
 }
 function resetResults(){
 qr.innerHTML='<div class="qr-placeholder"><b aria-hidden="true">▣</b><span>QR 코드가 여기에 나타납니다</span></div>';

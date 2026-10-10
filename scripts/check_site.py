@@ -64,7 +64,7 @@ with sync_playwright() as p:
     passed.append("URL2QR invalid input, QR decoding and PNG download")
     page.goto(base + "qrnshort/", wait_until="networkidle")
     assert page.locator("#url2qr-link").get_attribute("href") == "../url2qr/"
-    page.route("https://is.gd/create.php?**", lambda route: route.abort())
+    page.route("https://spoo.me/api/v1/shorten", lambda route: route.abort())
     page.locator("#url-input").fill(test_url)
     page.locator("#convert-button").click()
     page.wait_for_function("document.querySelector('#notice').dataset.kind === 'error'")
@@ -80,8 +80,10 @@ with sync_playwright() as p:
     assert not errors, errors
     browser.close()
 
-server.shutdown()
 print(json.dumps({"passed": passed, "browser_errors": errors}, ensure_ascii=False))
 
 import runpy
+import os
+os.environ['PROBE_APP_URL'] = base + 'qrnshort/'
 runpy.run_path('scripts/probe_short.py', run_name='__main__')
+server.shutdown()

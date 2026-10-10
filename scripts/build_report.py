@@ -103,7 +103,7 @@ def convert(page, original, with_short):
     if with_short:
         page.wait_for_function("""() => {
             const a = document.querySelector('#short-link');
-            return a && /^https:\\/\\/is\\.gd\\/[A-Za-z0-9_]+$/.test(a.href)
+            return a && /^https:\\/\\/spoo\\.me\\/[A-Za-z0-9_-]+$/.test(a.href)
                 && a.textContent.trim().length > 0;
         }""", timeout=30000)
     wait_qr(page)
@@ -146,14 +146,14 @@ def test_invalid_url(browser):
     page = context.new_page()
     goto_live(page, QRNSHORT, "#url-input")
     short_requests = []
-    page.on("request", lambda req: short_requests.append(req.url) if "is.gd/create.php" in req.url else None)
+    page.on("request", lambda req: short_requests.append(req.url) if "spoo.me/api/v1/shorten" in req.url else None)
     page.locator("#url-input").fill("javascript:alert(1)")
     page.locator("#convert-button").click()
     page.wait_for_timeout(400)
     href = page.locator("#short-link").get_attribute("href") or ""
     check("invalid_protocol_rejected",
           page.locator("#notice").get_attribute("data-kind") == "error"
-          and not short_requests and not re.fullmatch(r"https://is\.gd/[A-Za-z0-9_]+", href),
+          and not short_requests and not re.fullmatch(r"https://spoo\.me/[A-Za-z0-9_-]+", href),
           "Invalid URL protocol was not rejected before shortening.")
     context.close()
 
@@ -198,8 +198,8 @@ def browser_evidence():
               "Homepage QRnShort navigation failed.")
         convert(page, ORIGINAL, True)
         short_url = page.locator("#short-link").evaluate("(el) => el.href")
-        check("short_url_is_real_isgd", bool(re.fullmatch(r"https://is\.gd/[A-Za-z0-9_]+", short_url)),
-              "Converter did not return a real is.gd short URL.")
+        check("short_url_is_real_spoo", bool(re.fullmatch(r"https://spoo\.me/[A-Za-z0-9_-]+", short_url)),
+              "Converter did not return a real spoo.me short URL.")
         check("short_url_is_shorter", len(short_url) < len(ORIGINAL),
               "Generated short URL is not shorter than the original URL.")
         qrnshort_image = capture_result(page, "qrnshort")
