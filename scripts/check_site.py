@@ -82,3 +82,6 @@ with sync_playwright() as p:
 
 server.shutdown()
 print(json.dumps({"passed": passed, "browser_errors": errors}, ensure_ascii=False))
+
+import runpy
+runpy.run_path('scripts/probe_short.py', run_name='__main__')
